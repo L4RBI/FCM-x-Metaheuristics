@@ -1,8 +1,8 @@
-import operator
+#import operator
 import random
 
-import numpy
-import math
+from tools import *
+
 
 from deap import base
 from deap import benchmarks
@@ -14,43 +14,59 @@ creator.create("Particle", list, fitness = creator.Fitness, velocity = list, bes
 
 
 #initialize the Particule randomly
-def generate( pmin, pmax , vmin, vmax ):
-    particule = creator.Particle([random.uniform(pmin,pmax), random.uniform(pmin, pmax)]) 
-    particule.velocity = [random.uniform(vmin, vmax) for _ in range(2)]
+def generate( pmin, pmax , vmin, vmax, dim, size):
+    particule = creator.Particle([[random.uniform(pmin,pmax) for _ in range(dim)] for _ in range(size)])
+    particule.velocity = [[random.uniform(vmin, vmax) for _ in range(dim)] for _ in range(len(particule))]
     return particule
 
 
 #Update the postion of a particule using the equations 3 and 4 provided by the paper.
-def updateParticle(particule, best, constant1, constant2, weight, vmin, vmax):
-    rand1 = (random.uniform(0, 1) for _ in range(len(particule)))
-    rand2 = (random.uniform(0, 1) for _ in range(len(particule)))
-    rand1 = (_ * constant1 for _ in rand1)
-    rand2 = (_ * constant2 for _ in rand2)
-    v = (_ * weight for _ in particule.velocity) 
-    rand1_local = map(operator.mul, rand1, map(operator.sub, particule.best, particule))
-    rand2_global = map(operator.mul, rand2, map(operator.sub, best, particule))
-    particule.velocity = list(map(operator.add, v, map(operator.add, rand1_local, rand2_global))) #equation 3
-
-    for i, velocity in enumerate(particule.velocity): #making sure the velocity isn't yoo high.
-        if abs(velocity) < vmin:
-            particule.velocity[i] = math.copysign(vmin, velocity)
-        elif abs(velocity) > vmax:
-            particule.velocity[i] = math.copysign(vmax, velocity)
+def updateParticle(particule, best, constant1, constant2, weight, vmin, vmax, dim, data):
+    rand1 = [[random.uniform(0, 1) for _ in range(dim)] for _ in range(len(particule))]
+    rand2 = [[random.uniform(0, 1) for _ in range(dim)] for _ in range(len(particule))]
+    rand1 = numpy.multiply(rand1, constant1)
+    rand2 = numpy.multiply(rand2, constant2)
+    v = numpy.multiply(particule.velocity, weight)#(_ * weight for _ in particule.velocity) 
+    rand1_local = numpy.multiply(rand1,numpy.subtract(particule.best,particule))#map(operator.mul, rand1, map(operator.sub, particule.best, particule))
+    rand2_global = numpy.multiply(rand2,numpy.subtract(best,particule))#map(operator.mul, rand2, map(operator.sub, best, particule))
+    particule.velocity =  numpy.add( v, numpy.add( rand1_local, rand2_global))#map(operator.add, v, map(operator.add, rand1_local, rand2_global)) #equation 3
+  
+    for i in range(len(particule.velocity)):
+        for _ , velocity in enumerate(particule.velocity[i]): #making sure the velocity isn't yoo high.
+            if abs(velocity) < vmin:
+                particule.velocity[i][_] = math.copysign(vmin, velocity)
+            elif abs(velocity) > vmax:
+                particule.velocity[i][_] = math.copysign(vmax, velocity)
     
-    particule[:] = list(map(operator.add, particule, particule.velocity)) #equation 4 
+    particule[:] = numpy.add(particule, particule.velocity) #equation 4 
+    particule.fitness.values = toolbox.evaluate(data = data, particule = particule) #calculating the fitness
 
-def Evaluate(particule):
-    pass
+    if particule.best.fitness < particule.fitness: #updating the personal best.
+                particule.best = creator.Particle(particule)
+                particule.best.fitness.values = particule.fitness.values
+
+def Evaluate(data, particule, m):
+    m = membership(data, centers = particule, m = m)
+
+    return J(data, m, particule, m)
 
 toolbox = base.Toolbox()
-toolbox.register("particle", generate, pmin=-100, pmax = 100 ,vmin = -100, vmax = 100)
+toolbox.register("particle", generate, pmin=-100, pmax = 100 ,vmin = -100, vmax = 100 , dim = 2 , size = 3 )
 toolbox.register("population", tools.initRepeat, list, toolbox.particle)
-toolbox.register("update", updateParticle, constant1 = 2, constant2 =2 , weight = 0.5, vmin = -100 , vmax = 100 )
-toolbox.register("evaluate", benchmarks.ackley)
+toolbox.register("update", updateParticle, constant1 = 2, constant2 =2 , weight = 0.5, vmin = -100 , vmax = 100, dim = 2 )
+toolbox.register("evaluate", Evaluate, m = 2)
 
 def main():
-    Population = toolbox.population(n = 5)
+
+    #___________________________________________________________________________
+
+    path = "..\Images\Images\T07.JPG"
+    histogram = Histogram(path)
     
+    #____________________________________________________________________________
+
+
+    Population = toolbox.population(n = 2)
     stats = tools.Statistics(lambda ind: ind.fitness.values)
     stats.register("avg", numpy.mean)
     stats.register("std", numpy.std)
@@ -61,29 +77,27 @@ def main():
     logbook.header = ["gen", "evals"] + stats.fields
 
 
-    GEN = 1000
+    GEN = 500
     best = None
-
+    for particule in Population:
+        particule.fitness.values = toolbox.evaluate(data = histogram, particule = particule)
     for g in range(GEN): #computing the PSO Algorithm GEN times
+        print(Population)
         for particule in Population:
-            particule.fitness.values = toolbox.evaluate(particule)
-
-            if not particule.best or particule.best.fitness < particule.fitness: #updating the personal best.
+            if not particule.best or particule.best.fitness < particule.fitness:
                 particule.best = creator.Particle(particule)
                 particule.best.fitness.values = particule.fitness.values
-
             if not best or best.fitness < particule.fitness: #updating the global best.
                 best = creator.Particle(particule)
                 best.fitness.values = particule.fitness.values
-        
+        print(best)
         for particule in Population: #updating the position for each particule.
-            toolbox.update(particule, best)
-
+            toolbox.update(particule, best, data = histogram)
+        
             
          # Gather all the fitnesses in one list and print the stats
-        logbook.record(gen=g, evals=len(Population), **stats.compile(Population))
-        print(logbook.stream)
-    #print(best,best.fitness)
+        """logbook.record(gen=g, evals=len(Population), **stats.compile(Population))
+        print(logbook.stream)"""
     
     return Population, logbook, best
 

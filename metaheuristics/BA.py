@@ -14,12 +14,12 @@ creator.create("Bat", list , fitness = creator.Fitness, velocity = list , freque
 
 
 #the function that generates the initial an Bat randomly.
-def generate(bmin, bmax):
-    bat = creator.Bat([random.uniform(bmin,bmax), random.uniform(bmin,bmax)])
+def generate(bmin, bmax, dim, size):
+    bat = creator.Bat([random.uniform(bmin,bmax) for _ in range(dim)] for _ in range(size))
     bat.init_rate = random.uniform(0,0.95)
     bat.rate = bat.init_rate
     bat.loudness = 1
-    bat.velocity = [0.0,0.0]
+    bat.velocity = numpy.zeros(dim,size)
     bat.fitness = toolbox.evaluate(bat)
     bat.best = creator.Bat(bat)
     bat.best.fitness = bat.fitness
@@ -27,18 +27,18 @@ def generate(bmin, bmax):
 
 
 #updates the position of the agent using the 2, 3 and 4 equations of the paper.
-def updateBat(bat, bmin, bmax, best, fmin, fmax, A, G, alpha = 0.8, gamma = 0.9):
+def updateBat(bat, bmin, bmax, best, fmin, fmax, A, G, alpha = 0.8, gamma = 0.9, dim, size):
     
     """bat.frequency = fmin + (fmax - fmin) * random.uniform(0,1)
     bat.velocity = list(map(operator.add, bat.velocity, (_ * bat.frequency for _ in map(operator.sub, bat, best))))
     solution = creator.Bat(list(map(operator.add, bat , bat.velocity)))"""
     
     rand = random.uniform(0,1)#numpy.random.random_sample()
-    print("best random: ",rand,"the rate copared to it: ",bat.rate)
+    #print("best random: ",rand,"the rate copared to it: ",bat.rate)
     if rand > bat.rate: #random walk using equation 5 from the paper on the global best solution.
         eps = random.uniform(-1,1)
         eps_A = eps * A 
-        solution = ( _ + eps_A for _ in best)
+        solution = numpy.add(best,eps_A)#( _ + eps_A for _ in best)
         solution = creator.Bat(list(solution)) 
 
         """print("-around the best-")
@@ -46,7 +46,7 @@ def updateBat(bat, bmin, bmax, best, fmin, fmax, A, G, alpha = 0.8, gamma = 0.9)
         print("A: ",A)
         print("solution: ",solution)"""
     else:
-        bat.frequency = [fmin + (fmax - fmin) * random.uniform(0,1),fmin + (fmax - fmin) * random.uniform(0,1)] #equation 2 from the paper.
+        bat.frequency = [[fmin + (fmax - fmin) * random.uniform(0,1) for _ in range(dim)] for _ in range(size)] #equation 2 from the paper.
         dis = map(operator.mul, map(operator.sub, bat, best), bat.frequency)
         bat.velocity = list(map(operator.add, bat.velocity, dis)) #eauqtion 3 from the paper.
         solution = creator.Bat(list(map(operator.add, bat , bat.velocity))) #equation 4 from the paper
@@ -68,30 +68,30 @@ def updateBat(bat, bmin, bmax, best, fmin, fmax, A, G, alpha = 0.8, gamma = 0.9)
     #print("best random: ",rand,"the loudness copared to it: ",bat.loudness,rand < bat.loudness)
 
     if bat.fitness > solution.fitness and rand < bat.loudness: #asserting the solution only if the solution is better and the bat iss too loud.
-        print("-asserting the solution-  rand:",rand,"loudness:",bat.loudness)
+        #print("-asserting the solution-  rand:",rand,"loudness:",bat.loudness)
         bat[:] = solution
         bat.fitness = solution.fitness
         bat.loudness = alpha * bat.loudness
         bat.rate = bat.init_rate * (1 - math.exp(-alpha * (G+1)))
-        print("new loudness",bat.loudness)
-        print("new rate",bat.rate)
+        #print("new loudness",bat.loudness)
+        #print("new rate",bat.rate)
 
     if bat.best.fitness > bat.fitness: #updating the personal best.
-        print("pbest updated")
+        #print("pbest updated")
         bat.best = creator.Bat(bat)
         bat.best.fitness = bat.fitness
 
     if best.fitness > solution.fitness: #updating the global best.
-        print("best updated")
+        #print("best updated")
         best[:] = creator.Bat(solution)
         best.fitness = solution.fitness
 
 
 
 toolbox = base.Toolbox()
-toolbox.register("bat", generate, bmin=-15, bmax = 30)
+toolbox.register("bat", generate, bmin=-15, bmax = 30, dim = 2, size = 3)
 toolbox.register("population", tools.initRepeat, list, toolbox.bat)
-toolbox.register("update", updateBat, fmin = 0, fmax = 0.5, bmin = -15, bmax = 30)
+toolbox.register("update", updateBat, fmin = 0, fmax = 0.5, bmin = -15, bmax = 30, dim = 2, size = 3)
 toolbox.register("evaluate", benchmarks.ackley)
 
 
