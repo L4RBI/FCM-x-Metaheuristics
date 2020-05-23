@@ -3,7 +3,7 @@ from tools import *
 class FuzzyCMeans:
         def __init__(self, n_clusters, initial_centers , histogram , max_iter=250, m=2, error=1e-5 ):
             assert m > 1
-            assert initial_centers.shape[0] == n_clusters
+            #assert initial_centers.shape[0] == n_clusters
             self.U = None
             self.centers = initial_centers
             self.max_iter = max_iter
@@ -24,12 +24,11 @@ class FuzzyCMeans:
 
         def newImage(self,U,centers,im):
             best = numpy.argmax(self.U, axis = -1)
-            print(best)
-            image = im
+            #print(best)
+            #numpy.round()
+            image = im.astype(int)
             for i in range(256):
-                image[image == i] = centers[best[i]][0]#image = numpy.where( image == float(i), centers[best[i]][0], image) 
-            for i in range(256):
-                image[image == i] = centers[best[i]][0]
+                image = numpy.where( image == float(i), centers[best[i]][0], image)           
             return image
 
         def compute(self):
@@ -48,23 +47,3 @@ class FuzzyCMeans:
             
             return self.centers, self.U
 
-def main():
-    path = ".\Images\Images\T07.JPG"
-
-    Initial_centers= numpy.array([[random.uniform(0,255) , random.uniform(0,numpy.amax(Histogram(path)))] for _ in range(3)])
-
-    f = FuzzyCMeans(n_clusters = 3, initial_centers = Initial_centers, histogram = Histogram(path))
-
-    centers,U = f.compute()
-    print(centers)
-
-    """im = f.newImage(U,centers,image)
-    print(centers)
-    print(im)
-    print(image)
-    plt.imshow(im, cmap = 'gray')
-    #plt.imshow(image, cmap = 'gray',interpolation='nearest')
-    plt.show()"""
-
-if __name__ == "__main__":
-    main()

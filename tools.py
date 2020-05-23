@@ -10,16 +10,13 @@ from scipy.linalg import norm
 
 #computes the histogram of an image
 def Histogram(path):
-    histogram = [0]*256
     image = imread(path)
     if len(image.shape) != 2:
-        gray = lambda rgb : numpy.dot(rgb[... , :3] , [0.299 , 0.587, 0.114]) 
+        gray = lambda rgb : numpy.dot(rgb[... , :3] , [0.2989, 0.5870, 0.1140]) 
         gray = gray(image) 
         image = gray
-    image = numpy.array(image)
-    for i in range(256):
-        histogram[i]+=numpy.count_nonzero(image == i)
-    return adapt(numpy.array(histogram))
+    hist,bins = numpy.histogram(image.ravel(),256,[0,256])
+    return adapt(hist)#changed
 
 #plots a histogram
 def ShowHistogram(histogram):

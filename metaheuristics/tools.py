@@ -2,6 +2,7 @@
 from matplotlib.image import imread
 import matplotlib.pyplot as plt 
 from math import sqrt
+import math
 import random
 import numpy
 import operator
@@ -10,16 +11,13 @@ from scipy.linalg import norm
 
 #computes the histogram of an image
 def Histogram(path):
-    histogram = [0]*256
     image = imread(path)
     if len(image.shape) != 2:
-        gray = lambda rgb : numpy.dot(rgb[... , :3] , [0.299 , 0.587, 0.114]) 
+        gray = lambda rgb : numpy.dot(rgb[... , :3] , [0.2989, 0.5870, 0.1140]) 
         gray = gray(image) 
         image = gray
-    image = numpy.array(image)
-    for i in range(256):
-        histogram[i]+=numpy.count_nonzero(image == i)
-    return adapt(numpy.array(histogram))
+    hist,bins = numpy.histogram(image.ravel(),256,[0,256])
+    return adapt(hist)#changed
 
 #plots a histogram
 def ShowHistogram(histogram):
@@ -39,20 +37,25 @@ def adapt(histogram):
 
 #calculates the euclidean distance between two points
 def Dis(x,y):  
-     dist = sqrt((x[0] - y[0])**2 + (x[1] - y[1])**2)  
-     return dist 
+    """dist = sqrt((x[0] - y[0])**2 + (x[1] - y[1])**2)  
+    return dist """
+    d = map(operator.add, x, y)  # (subtracting element by element) ^ 2
+    d = (_ ** 2 for _ in d)
+    sum = 0
+    for i in d:
+        sum = sum + i
+    return numpy.sqrt(sum)
 
 #intra distance not yet fixed
-def instraDistance(data,membership,centers):
+"""def instraDistance(data,membership,centers):
     membership = numpy.argmax(membership, axis=-1)
     temp = []
     for i in range(len(membership)):
-        print(data[i])
         #x = Dis(data[i],centers[membership[i]])
         #temp.append(x)
     temp = numpy.power(temp, 2)
     return numpy.sum(temp)
-
+"""
 #calculates the Membership matrix
 def membership(histogram, centers, m):
     U_temp = cdist( histogram , centers , 'euclidean')

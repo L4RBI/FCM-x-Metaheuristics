@@ -12,10 +12,17 @@ from deap import tools
 creator.create("Fitness", base.Fitness, weights=(-1.0,))
 creator.create("Particle", list, fitness = creator.Fitness, velocity = list, best = None)
 
+#___________________________________________________________________________
+
+path = "..\Images\Images\T07.JPG"
+histogram = Histogram(path)
+    
+#____________________________________________________________________________
+
 
 #initialize the Particule randomly
 def generate( pmin, pmax , vmin, vmax, dim, size):
-    particule = creator.Particle([[random.uniform(pmin,pmax) for _ in range(dim)] for _ in range(size)])
+    particule = creator.Particle([[random.uniform(pmin,pmax), random.uniform(pmin,numpy.amax(histogram))] for _ in range(size)])
     particule.velocity = [[random.uniform(vmin, vmax) for _ in range(dim)] for _ in range(len(particule))]
     return particule
 
@@ -46,27 +53,19 @@ def updateParticle(particule, best, constant1, constant2, weight, vmin, vmax, di
                 particule.best.fitness.values = particule.fitness.values
 
 def Evaluate(data, particule, m):
-    m = membership(data, centers = particule, m = m)
-
-    return J(data, m, particule, m)
+    M = membership(data, centers = particule, m = m)
+    return (J(data, M, particule, m),)
 
 toolbox = base.Toolbox()
-toolbox.register("particle", generate, pmin=-100, pmax = 100 ,vmin = -100, vmax = 100 , dim = 2 , size = 3 )
+toolbox.register("particle", generate, pmin = 0, pmax = 255 ,vmin = -100, vmax = 100 , dim = 2 , size = 4 )
 toolbox.register("population", tools.initRepeat, list, toolbox.particle)
 toolbox.register("update", updateParticle, constant1 = 2, constant2 =2 , weight = 0.5, vmin = -100 , vmax = 100, dim = 2 )
 toolbox.register("evaluate", Evaluate, m = 2)
 
 def main():
 
-    #___________________________________________________________________________
 
-    path = "..\Images\Images\T07.JPG"
-    histogram = Histogram(path)
-    
-    #____________________________________________________________________________
-
-
-    Population = toolbox.population(n = 2)
+    Population = toolbox.population(n = 100)
     stats = tools.Statistics(lambda ind: ind.fitness.values)
     stats.register("avg", numpy.mean)
     stats.register("std", numpy.std)
@@ -77,12 +76,11 @@ def main():
     logbook.header = ["gen", "evals"] + stats.fields
 
 
-    GEN = 500
+    GEN = 2000
     best = None
     for particule in Population:
         particule.fitness.values = toolbox.evaluate(data = histogram, particule = particule)
     for g in range(GEN): #computing the PSO Algorithm GEN times
-        print(Population)
         for particule in Population:
             if not particule.best or particule.best.fitness < particule.fitness:
                 particule.best = creator.Particle(particule)
@@ -90,14 +88,13 @@ def main():
             if not best or best.fitness < particule.fitness: #updating the global best.
                 best = creator.Particle(particule)
                 best.fitness.values = particule.fitness.values
-        print(best)
+        
         for particule in Population: #updating the position for each particule.
             toolbox.update(particule, best, data = histogram)
-        
-            
          # Gather all the fitnesses in one list and print the stats
         """logbook.record(gen=g, evals=len(Population), **stats.compile(Population))
         print(logbook.stream)"""
+    print("best:",best,best.fitness)    
     
     return Population, logbook, best
 
