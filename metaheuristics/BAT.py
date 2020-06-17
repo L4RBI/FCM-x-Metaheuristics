@@ -64,7 +64,7 @@ def updateBat(bat, best, fmin, fmax, G, A, alpha = 0.9, gamma = 0.9):
     solution.fitness = toolbox.evaluate(solution) #calculation the fitness of the Bat.
 
     rand =numpy.random.random_sample()
-    if bat.fitness >= solution.fitness and rand < A : #asserting the solution only if the solution is better and the bat iss too loud.
+    if bat.fitness >= solution.fitness and rand < bat.loudness : #asserting the solution only if the solution is better and the bat is too loud.
         # print("-asserting the solution-  rand:",rand)
         # print("bat: ",bat.fitness,"sol: ",solution.fitness)
         # print(" ")

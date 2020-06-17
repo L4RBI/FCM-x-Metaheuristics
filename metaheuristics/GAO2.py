@@ -89,8 +89,8 @@ toolbox.register("update", updateGrassHopper, f = 0.5, l = 1.5) #registering the
 toolbox.register("evaluate", Evaluate, data = histogram) #the function used to calculate the fitness set and evaluate.
 
 def main():
-    Swarm = toolbox.swarm(n = 40) #intializing the swarm with n agents.
-    GEN = 1400 #the numer of max iterations.
+    Swarm = toolbox.swarm(n = 20) #intializing the swarm with n agents.
+    GEN = 140 #the numer of max iterations.
     best = None #initializing the best as none.
     #print(Swarm)
 
@@ -103,7 +103,6 @@ def main():
     #print(best)
 
     for g in range(GEN): #runing the GAO Gen times
-        print(Swarm)
         c = compute_c(g + 1, GEN) #computing c 
         for agent in Swarm: #updating each agent using the best solution found 
             toolbox.update(agent = agent, Population = Swarm, c = c, best = best )
@@ -111,7 +110,7 @@ def main():
             if not best or best.fitness > agent.fitness:
                 best = creator.Agent(agent)
                 best.fitness = agent.fitness
-        print(best,best.fitness)
+    print(best,best.fitness)
         
 
 if __name__ == "__main__":

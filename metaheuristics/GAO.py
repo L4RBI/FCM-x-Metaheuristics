@@ -110,7 +110,7 @@ def main():
             if not best or best.fitness > agent.fitness:
                 best = creator.Agent(agent)
                 best.fitness = agent.fitness
-        print(best,best.fitness)
+    print(best,best.fitness)
         
 
 if __name__ == "__main__":
