@@ -10,8 +10,6 @@ from deap import tools
 
 creator.create("Fitness", base.Fitness, weights=(-1.0,)) #creating an object Fitness with deap.
 creator.create("Agent", list, fitness = creator.Fitness, velocity = list) #creating an object Agent with deap.
-
-
 #___________________________________________________________________________
 
 path = "..\Images\Images\T07.JPG"
@@ -20,13 +18,12 @@ u = numpy.amax(histogram)
 l = 0
 ubound = 256
 lbound = 0
-size = 3
+size = 4
 m = 2    
 #____________________________________________________________________________
 #
 def S(r, f, l):
     return (f * numpy.exp(-r / l)) - numpy.exp(-r)
-
 
 #calculates the euclidean distanc ebetween two points [].
 def dis(a, b):
@@ -37,13 +34,11 @@ def dis(a, b):
         sum = sum + i
     return numpy.sqrt(sum)
 
-  
 #calculates the C based on the 2.8 equation of the paper.
 def compute_c(g, max_iter):
     cmax = 1
     cmin = 0.00000001
     return cmax - g * ((cmax - cmin) / max_iter)  #equation 2.8
-
 
 #calculates the "{ }" part of the 2.7 equation of the paper.
 def compute_braquet(agent1 , agent2, c, f, l):#the braquet of the 2.7 equation
@@ -55,9 +50,6 @@ def compute_braquet(agent1 , agent2, c, f, l):#the braquet of the 2.7 equation
     s_thing = S(function, f = f, l = l)
     temp = ((ubound - lbound) * c / 2) * s_thing
     return list((_ * temp for _ in right ))
-
-
-
 
 def generate():
     agent = creator.Agent([random.uniform(ubound, lbound), random.uniform(u, 0)] for _ in range(size))
@@ -89,8 +81,8 @@ toolbox.register("update", updateGrassHopper, f = 0.5, l = 1.5) #registering the
 toolbox.register("evaluate", Evaluate, data = histogram) #the function used to calculate the fitness set and evaluate.
 
 def main():
-    Swarm = toolbox.swarm(n = 20) #intializing the swarm with n agents.
-    GEN = 140 #the numer of max iterations.
+    Swarm = toolbox.swarm(n = 5) #intializing the swarm with n agents.
+    GEN = 2000 #the numer of max iterations.
     best = None #initializing the best as none.
     #print(Swarm)
 
