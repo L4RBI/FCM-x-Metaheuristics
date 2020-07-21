@@ -1,7 +1,7 @@
-#from fcmeans import FCM
 from matplotlib.image import imread
 import matplotlib.pyplot as plt 
 from math import sqrt
+import math
 import random
 import numpy
 import operator
