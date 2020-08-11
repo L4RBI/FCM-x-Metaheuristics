@@ -35,7 +35,7 @@ def compute_braquet(agent1 , agent2, c, f, l, u, lb, ubound, lbound, size):#the 
     s_thing = S(function, f = f, l = l)
     t = numpy.zeros((size,2))
     for i in range(size):
-        t = numpy.multiply([((ubound - lbound) * c / 2), ((u - lb) * c / 2) ], s_thing[i])
+        t = numpy.multiply([(((ubound - lbound) * c) / 2), (((u - lb) * c) / 2) ], s_thing[i])
     return list( t * rd)
 
 
@@ -48,11 +48,11 @@ def generate(histogram, ubound, lbound, size, u, lb, m):
 def updateGrassHopper(agent , Population, c, f, l, best, histogram, u, lb, ubound, lbound, size, m):
     sigma = numpy.zeros((size,2))
     for p in Population:
-        if not numpy.array_equal(p, Population):
+        if not numpy.array_equal(p, agent):
             sigma += numpy.multiply(random.random() , compute_braquet(agent1 = agent, agent2 = p, c = c, f = f, l = l, lb = lb, u = u, ubound = ubound, lbound = lbound, size = size)) # the sum of the "{ }" part of equation 2.7.
-    #b = numpy.multiply(best,random.random(),random.random()] for _ in range(size)]) #randomizing the second term
-    #sigma = sigma * [[random.random(),random.random()]]
-    sigma = list(c * sigma  + numpy.multiply(best, [[random.random(), random.random()] for _ in range(size)])) #the result with radomization of both terms.
+    b = numpy.multiply(best, [[random.random(), random.random()] for _ in range(size)]) #randomizing the second term
+    sigma = sigma * [[random.random(),random.random()]]
+    sigma = list(c * sigma  + b) #the result with radomization of both terms.
     
     agent[:] = sigma #updating the postion.
     agent.fitness = toolbox.evaluate(agent = agent, data = histogram, m = m)
@@ -64,3 +64,4 @@ def Evaluate(data, agent, m):
 #setting up the functions for easier calls using the toolbox provided by deap
 toolbox = base.Toolbox()
 toolbox.register("evaluate", Evaluate) #the function used to calculate the fitness set and evaluate.
+

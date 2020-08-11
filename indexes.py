@@ -35,6 +35,7 @@ def sc(histogram, centers, m):
     M = numpy.power(_membership, 2)
     Dxv = cdist(histogram, centers)
     DVV = cdist(centers,centers)
+    DVV[DVV == 0] = numpy.inf
     MDxv = numpy.multiply(M, Dxv)
     temp = []
     for i in range(len(Ni)):
