@@ -43,7 +43,6 @@ class metaheuristics:
                 A += bat.loudness
             mean_A = A / N
         x = datetime.datetime.now() - begin_time
-        print(best.fitness)
         return best, x
 
     def pso(self, N, GEN, pmin=0, pmax=255, vmin=-100, vmax=100, constant1=2, constant2=2, weight=0.5):
@@ -72,7 +71,6 @@ class metaheuristics:
             for particule in Population:  # updating the position for each particule.
                 toolbox.update(particule, best)
         x = datetime.datetime.now() - begin_time
-        print(best.fitness)
         return best, x
 
     def gao(self, N, GEN, ubound=0, lbound=255, lb=0, f=0.5, l=1.5):
@@ -96,12 +94,9 @@ class metaheuristics:
             c = GAO.compute_c(g + 1, GEN)  # computing c
             for agent in Swarm:  # updating each agent using the best solution found
                 toolbox.update(agent=agent, Population=Swarm, c=c, best=best)
-            print(Swarm)
-            print("best:", best)
             for agent in Swarm:  # updating the best solution after updating the whole swarm.
                 if not best or best.fitness > agent.fitness:
                     best = GAO.creator.Agent(agent)
                     best.fitness = agent.fitness
                     print("new best:", best)
-        print(best.fitness)
         return best
